@@ -273,3 +273,91 @@ plays:
   assert.equal(new URL(page.url()).hash, '');
   assert.equal(page.url().includes(token), false);
 });
+
+test('an expired iframe credential is renewed by the next hello', { timeout: 60_000 }, async (t) => {
+  const { chromium } = loadPlaywright();
+  const { signHs256 } = require(path.join(ROOT, 'src/identity'));
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'pavilo-embed-renew-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const host = await startStatic();
+  t.after(() => host.close());
+  const secret = '0123456789abcdef0123456789abcdef';
+  const configPath = path.join(directory, 'pavilo.yaml');
+  await writeFile(configPath, `version: 2
+storage:
+  driver: sqlite
+  sqlite:
+    path: ${JSON.stringify(path.join(directory, 'pavilo.db')).slice(1, -1)}
+    engine: node
+embed:
+  ancestors:
+    - ${host.origin}
+identity:
+  guests: false
+  audience: pavilo
+  clockSkewSec: 0
+  issuers:
+    - id: app
+      alg: HS256
+      secret: ${secret}
+room:
+  title: Renew
+  defaultChannel: general
+  exposeLanUrls: false
+channels:
+  - id: general
+    name: 闲聊
+    access: authenticated
+`);
+  const pavilo = await startPavilo(configPath);
+  t.after(() => pavilo.stop());
+  const sign = (seconds) => {
+    const nowSec = Math.floor(Date.now() / 1000);
+    return signHs256({
+      iss: 'app',
+      aud: 'pavilo',
+      sub: 'ada',
+      name: 'Ada',
+      channels: ['general'],
+      iat: nowSec,
+      exp: nowSec + seconds,
+    }, secret);
+  };
+  const shortLived = sign(8);
+  host.setHtml(`<!doctype html><meta charset="utf-8"><title>host</title>
+<iframe id="room" title="Pavilo" style="width:1200px;height:800px;border:0"></iframe>
+<script>
+  const pavilo = ${JSON.stringify(pavilo.baseUrl)};
+  const origin = new URL(pavilo).origin;
+  const iframe = document.getElementById('room');
+  const tokens = ${JSON.stringify([shortLived, sign(600)])};
+  window.__hellos = 0;
+  window.addEventListener('message', (event) => {
+    if (event.origin !== origin || event.source !== iframe.contentWindow) return;
+    const data = event.data;
+    if (!data || data.v !== 1 || data.source !== 'pavilo-embed' || data.type !== 'hello') return;
+    const identityToken = tokens[Math.min(window.__hellos, tokens.length - 1)];
+    window.__hellos += 1;
+    iframe.contentWindow.postMessage({
+      v: 1, source: 'pavilo-host', type: 'identity',
+      instance: data.instance, channelId: 'general', username: 'Ada', identityToken,
+    }, origin);
+  });
+  iframe.src = pavilo + '/embed';
+</script>`);
+  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  t.after(() => browser.close());
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  page.setDefaultTimeout(15_000);
+  await page.goto(host.origin);
+  const frame = page.frameLocator('#room');
+  await frame.locator('#composerText').waitFor();
+  await page.waitForTimeout(9000);
+  await frame.locator('#composerText').fill('过期前');
+  await frame.locator('#composerText').press('Enter');
+  await page.waitForFunction(() => window.__hellos >= 2);
+  await frame.locator('#composerText').waitFor();
+  await frame.locator('#composerText').fill('续上了');
+  await frame.locator('#composerText').press('Enter');
+  await frame.locator('#messageList .message-body', { hasText: '续上了' }).waitFor();
+});

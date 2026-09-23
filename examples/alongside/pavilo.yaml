@@ -1,0 +1,37 @@
+# 给自己的网站嵌一页。祖先必须是浏览器打开网站时的源，不是 Pavilo 自己的源。
+# 密钥不要写在这里：export PAVILO_IDENTITY_SECRET=$(openssl rand -hex 32)
+version: 2
+
+server:
+  host: 0.0.0.0
+  port: 4173
+
+storage:
+  driver: sqlite
+  sqlite:
+    path: /app/data/pavilo.db
+
+identity:
+  guests: false
+  audience: pavilo
+  clockSkewSec: 60
+  issuers:
+    - id: app
+      alg: HS256
+      secret: ""
+
+embed:
+  ancestors:
+    - http://127.0.0.1:4174
+    - http://localhost:4174
+
+room:
+  title: 网站里的语亭
+  defaultChannel: chat
+  exposeMemberIps: false
+  exposeLanUrls: false
+
+channels:
+  - id: chat
+    name: 聊天
+    access: authenticated

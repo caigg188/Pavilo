@@ -1,10 +1,13 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const http = require('node:http');
+const os = require('node:os');
+const path = require('node:path');
 const test = require('node:test');
 const { createEmbedBridge, playEmbedUrl, embedReturnUrl, credentialFromHash, withCredential, consumeFragmentToken } = require('../client/embed');
-const { parseConfig } = require('../config');
+const { loadConfig, parseConfig } = require('../config');
 const { createChatServer } = require('../server');
 const { defaultFeatures } = require('../src/core/capabilities');
 
@@ -197,4 +200,41 @@ test('configured ancestors open only the embed document and play pages', async (
   assert.equal(admin.headers.get('x-frame-options'), 'DENY');
   const secret = await fetch(`${base}/plays/echo/host.js`);
   assert.equal(secret.status, 404);
+});
+
+test('the embed snippet in the integration note matches frame.js', () => {
+  const snippet = fs.readFileSync(path.join(__dirname, '../examples/host-embed/frame.js'), 'utf8').trim();
+  const note = fs.readFileSync(path.join(__dirname, '../docs/integrate.md'), 'utf8');
+  assert.equal(note.includes(snippet), true);
+});
+
+test('alongside example opens /embed only for the website origins', async (t) => {
+  const root = path.join(__dirname, '../examples/alongside');
+  const compose = fs.readFileSync(path.join(root, 'docker-compose.yml'), 'utf8');
+  assert.match(compose, /read_only:\s*false/);
+  assert.match(compose, /\.\/data:\/app\/data/);
+  assert.match(compose, /pavilo\.yaml:\/app\/pavilo\.yaml:ro/);
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'pavilo-alongside-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const database = path.join(directory, 'pavilo.db');
+  const raw = fs.readFileSync(path.join(root, 'pavilo.yaml'), 'utf8');
+  const configPath = path.join(directory, 'pavilo.yaml');
+  fs.writeFileSync(configPath, raw.replace('path: /app/data/pavilo.db', `path: ${JSON.stringify(database)}`));
+  const secret = '0123456789abcdef0123456789abcdef';
+  const loaded = loadConfig({
+    configPath,
+    env: { ...process.env, PAVILO_IDENTITY_SECRET: secret },
+  });
+  assert.deepEqual(loaded.config.embedAncestors, ['http://127.0.0.1:4174', 'http://localhost:4174']);
+  assert.equal(loaded.config.embedDirect, false);
+  assert.equal(loaded.config.identity.issuers[0].secret, secret);
+  const app = createChatServer(loaded.config);
+  t.after(() => app.stop());
+  const port = await listen(app);
+  const embed = await fetch(`http://127.0.0.1:${port}/embed`);
+  assert.equal(embed.status, 200);
+  assert.equal(embed.headers.get('x-frame-options'), null);
+  assert.match(embed.headers.get('content-security-policy'), /frame-ancestors http:\/\/127\.0\.0\.1:4174 http:\/\/localhost:4174;/);
+  const home = await fetch(`http://127.0.0.1:${port}/`);
+  assert.equal(home.headers.get('x-frame-options'), 'DENY');
 });

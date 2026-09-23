@@ -1007,6 +1007,7 @@
         embedBridge?.clear();
         embedBridge?.post('identity-expired');
         showEmbedWaiting(t('login.embedExpired'));
+        embedBridge?.hello();
         return;
       }
       composerController.clearReply();

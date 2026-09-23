@@ -45,9 +45,7 @@ PAVILO_CHANNEL 是 chat。PAVILO_ISSUER 是 app。PAVILO_AUDIENCE 是 pavilo。
 
 按这个项目实际的壳选一种，不要两种都做：
 
-1. 网页。加一个 iframe，src 是 PAVILO_URL + "/embed"，不要附带 token，不要加 sandbox。监听 message。只接受 event.origin 等于 Pavilo 的源，且 event.source 是这个 iframe 的 contentWindow。忽略 v 不是 1 或 source 不是 "pavilo-embed" 的消息。收到 type "hello" 时，向该 iframe 发送：
-   { v: 1, source: "pavilo-host", type: "identity", instance: 消息里的 instance, channelId: PAVILO_CHANNEL, username: 显示名, identityToken: 刚签发的 JWT }
-   targetOrigin 必须是 Pavilo 的源。每次 hello 都回复，包括里面再打开玩法页的那一次。用户离开或换人时拆掉 iframe，下一个人用新的 iframe。embed.ancestors 用这个网站的源，不要把这个源写进 server.allowedOrigins。
+1. 网页。加一个 iframe，src 是 PAVILO_URL + "/embed"，不要附带 token，不要加 sandbox。使用下面的 attachPaviloFrame，不要改字段名。signIdentity 每次 hello 都重新签发，不要把上一张凭证缓存到过期。收到 identity-expired 时不要拆掉 iframe，页面会再发 hello。embed.ancestors 用这个网站的源，不要把这个源写进 server.allowedOrigins。配置可以照仓库里的 examples/alongside，只改祖先和端口。用 SQLite 时关掉只读根文件系统并挂上数据目录。
 
 2. iOS 或 Android 应用。不要用 v1.6.0 镜像，它还不认地址里的 fragment。这一条只在当前主线，需要自行构建镜像，并在 pavilo.yaml 写 embed.direct: true。用系统 WebView 打开：
    PAVILO_URL + "/embed?channel=" + PAVILO_CHANNEL + "#pavilo=" + encodeURIComponent(JWT)
@@ -57,6 +55,35 @@ PAVILO_CHANNEL 是 chat。PAVILO_ISSUER 是 app。PAVILO_AUDIENCE 是 pavilo。
 
 不要改 Pavilo 的功能开关。关掉的能力页面自己会藏起来。
 ~~~~
+
+嵌页代码逐字如下，与 [examples/host-embed/frame.js](../examples/host-embed/frame.js) 相同：
+
+```javascript
+// 嵌进网页时逐字使用。每次 hello 都要换一张新凭证。不要在 identity-expired 时拆掉 iframe。
+function attachPaviloFrame(iframe, paviloUrl, signIdentity) {
+  const paviloOrigin = new URL(paviloUrl, window.location.href).origin;
+  window.addEventListener('message', (event) => {
+    if (!iframe || event.origin !== paviloOrigin || event.source !== iframe.contentWindow) return;
+    const data = event.data;
+    if (!data || data.v !== 1 || data.source !== 'pavilo-embed' || data.type !== 'hello') return;
+    Promise.resolve()
+      .then(() => signIdentity())
+      .then((session) => {
+        if (!session || !session.identityToken || event.source !== iframe.contentWindow) return;
+        iframe.contentWindow.postMessage({
+          v: 1,
+          source: 'pavilo-host',
+          type: 'identity',
+          instance: data.instance,
+          channelId: session.channelId,
+          username: session.username,
+          identityToken: session.identityToken,
+        }, paviloOrigin);
+      })
+      .catch(() => {});
+  });
+}
+```
 
 上面那段话要求 Agent 在对方自己的部署里写下面这种配置。文件可以留在对方仓库的部署目录，不要打进前端包。密钥用环境变量 `PAVILO_IDENTITY_SECRET`，不要写进文件。项目维护者不提供这台服务。
 

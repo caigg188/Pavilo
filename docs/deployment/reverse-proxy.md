@@ -64,14 +64,11 @@ server {
 
 ### Pavilo 配置
 
-在 `pavilo.yaml` 中配置允许的 Origin：
+独立打开 `https://chat.example.com` 时，浏览器的 WebSocket 与页面同源，不必把这个源写进 `server.allowedOrigins`。
 
-```yaml
-version: 1
-server:
-  allowedOrigins:
-    - https://chat.example.com
-```
+把页面嵌进另一个网站时，不要靠这张名单。名单管的是「谁自己来连 WebSocket」。嵌入页自己连 Pavilo，Origin 是 `https://chat.example.com`。要写的是 `embed.ancestors`，值是**网站**的源，例如 `https://app.example.com`。网站的内容安全策略还得允许把这个源放进 iframe。
+
+Pavilo 必须单独占一个浏览器能打开的源。不要挂到 `https://app.example.com/pavilo/` 这种子路径下，页面、脚本和 WebSocket 都从站点根路径加载。网站是 HTTPS 时，iframe 的地址也必须是 HTTPS。对照 [examples/alongside](../../examples/alongside/)。
 
 ### 测试
 
@@ -108,12 +105,7 @@ chat.example.com {
 
 ### Pavilo 配置
 
-```yaml
-version: 1
-server:
-  allowedOrigins:
-    - https://chat.example.com
-```
+与 Nginx 相同：同源访问不用写 `allowedOrigins`。嵌进别的网站时写 `embed.ancestors`，不要把 Pavilo 挂到网站的子路径下。
 
 ### 测试
 
@@ -141,20 +133,11 @@ WebSocket 是长连接，建议：
 - **写超时**: 86400s (24小时) 或更长
 - **保持活动**: Pavilo 每 30 秒发送心跳，75 秒超时
 
-### 3. Origin 验证
+### 3. Origin 与嵌入
 
-Pavilo 默认验证 `Origin` 头。在反向代理环境中：
+`server.allowedOrigins` 只用于别的页面自己打开 WebSocket。Pavilo 自己的页面连自己，不需要把自己的源写进去。
 
-```yaml
-server:
-  # 允许外部域名
-  allowedOrigins:
-    - https://chat.example.com
-    - https://team.example.com
-  
-  # 生产环境建议禁用无 Origin 连接
-  allowNoOrigin: false
-```
+嵌入用 `embed.ancestors`，填网站的源。生产环境若要拒绝没有 Origin 的连接，把 `allowNoOrigin` 设为 `false`。这不能代替嵌入名单，也不能让 HTTPS 网站去嵌一个 HTTP 地址。
 
 ### 4. IP 传递
 

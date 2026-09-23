@@ -168,6 +168,13 @@
       globalThis.addEventListener?.('pageshow', (event) => {
         if (event.persisted) bridge.hello();
       });
+      connection.subscribe((event) => {
+        if (event.type !== 'moderationClose' || event.reason !== 'identity') return;
+        identity = null;
+        bridge.clear();
+        bridge.post('identity-expired');
+        bridge.hello();
+      });
       bridge.subscribe(async (event) => {
         if (event.type !== 'identity') return;
         const next = event.identity;

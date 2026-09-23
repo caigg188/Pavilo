@@ -10,6 +10,9 @@ Pavilo 的重要变更都记在这份文件里。
 - 一段话接入，不发布 SDK。见 [接入说明](docs/integrate.md)
 - `embed.direct`：只开顶层 `/embed`，仍然拒绝被 iframe。给 App 的 WebView。不写时行为与 v1.6.0 相同。小程序不在这次范围内
 - `/embed` 和嵌入中的玩法页从地址 fragment `#pavilo=<jwt>` 读入凭证，并立刻从地址栏删除。`?pavilo=` 不算凭证。网页 iframe 的 `postMessage` 不变
+- 嵌入页在凭证过期后再发一次 `hello`，外层按原来的回复换一张新凭证，不必拆掉 iframe
+- [examples/alongside/](examples/alongside/)：在自己的网站旁边启动、并允许嵌入的配置
+- [examples/host-embed/frame.js](examples/host-embed/frame.js)：逐字使用的嵌页代码
 
 ## [1.6.0] - 2026-09-23
 

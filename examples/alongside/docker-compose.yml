@@ -1,0 +1,17 @@
+# 在网站旁边启动 Pavilo。浏览器必须能打开这里公布的端口。
+# 网站是 HTTPS 时，这一侧也要是 HTTPS，不能只在内网用 http。
+# 不要把 Pavilo 挂到网站的子路径上。页面和 WebSocket 都从站点根路径加载。
+services:
+  pavilo:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    ports:
+      - "4173:4173"
+    environment:
+      PAVILO_IDENTITY_SECRET: ${PAVILO_IDENTITY_SECRET:?set PAVILO_IDENTITY_SECRET}
+    volumes:
+      - ./pavilo.yaml:/app/pavilo.yaml:ro
+      - ./data:/app/data
+    read_only: false
+    restart: unless-stopped

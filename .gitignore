@@ -32,4 +32,5 @@ docs/SCRATCH.md
 
 # Optional local persistence
 /data/
+examples/alongside/data/
 /uploads/

@@ -28,8 +28,14 @@ function json(response, status, payload) {
 }
 
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8').replaceAll('__PAVILO_URL__', PAVILO_URL);
+const frameJs = fs.readFileSync(path.join(__dirname, 'frame.js'));
 
 const server = http.createServer((request, response) => {
+  if (request.method === 'GET' && request.url === '/frame.js') {
+    response.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' });
+    response.end(frameJs);
+    return;
+  }
   if (request.method === 'GET' && (request.url === '/' || request.url === '/index.html')) {
     response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     response.end(html);
