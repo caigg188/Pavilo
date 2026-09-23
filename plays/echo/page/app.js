@@ -11,7 +11,12 @@
   const embedded = params.get('embed') === '1';
   if (embedded) {
     const home = document.querySelector('.mark');
-    if (home) home.setAttribute('href', '/embed');
+    if (home) {
+      home.addEventListener('click', (event) => {
+        event.preventDefault();
+        location.assign(play.embedReturnUrl());
+      });
+    }
   }
 
   function log(line) {
@@ -54,8 +59,9 @@
   });
   document.getElementById('summon').addEventListener('click', () => play.playAction('summon', {}));
   document.getElementById('leave').addEventListener('click', () => {
+    const next = play.embedReturnUrl();
     play.leave();
-    location.assign(play.embedReturnUrl());
+    location.assign(next);
   });
 
   play.start({ channelId });

@@ -6,6 +6,11 @@ Pavilo 的重要变更都记在这份文件里。
 
 ## [Unreleased]
 
+### Added
+- 一段话接入，不发布 SDK。见 [接入说明](docs/integrate.md)
+- `embed.direct`：只开顶层 `/embed`，仍然拒绝被 iframe。给 App 的 WebView。不写时行为与 v1.6.0 相同。小程序不在这次范围内
+- `/embed` 和嵌入中的玩法页从地址 fragment `#pavilo=<jwt>` 读入凭证，并立刻从地址栏删除。`?pavilo=` 不算凭证。网页 iframe 的 `postMessage` 不变
+
 ## [1.6.0] - 2026-09-23
 
 嵌入预览。不写 `embed.ancestors` 时没有 `/embed`，页面仍拒绝被嵌，行为与 v1.5.0 相同。Protocol v4 不升号。不是 npm SDK，也不是原生或小程序插件。官方狼人杀尚未实现。

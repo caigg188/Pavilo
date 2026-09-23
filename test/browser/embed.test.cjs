@@ -192,3 +192,84 @@ plays:
   const visible = await blocked.frameLocator('#room').locator('#composerText').count();
   assert.equal(visible, 0);
 });
+
+test('a top-level web container signs in from the fragment and keeps the credential out of the address bar', { timeout: 60_000 }, async (t) => {
+  const { chromium } = loadPlaywright();
+  const { signHs256 } = require(path.join(ROOT, 'src/identity'));
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'pavilo-embed-direct-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const secret = '0123456789abcdef0123456789abcdef';
+  const configPath = path.join(directory, 'pavilo.yaml');
+  await writeFile(configPath, `version: 2
+storage:
+  driver: sqlite
+  sqlite:
+    path: ${JSON.stringify(path.join(directory, 'pavilo.db')).slice(1, -1)}
+    engine: node
+embed:
+  direct: true
+identity:
+  guests: false
+  audience: pavilo
+  issuers:
+    - id: app
+      alg: HS256
+      secret: ${secret}
+room:
+  title: Direct shell
+  defaultChannel: staff
+  exposeLanUrls: false
+channels:
+  - id: staff
+    name: 内部
+    access: authenticated
+  - id: table
+    name: 回声
+    access: authenticated
+    play: echo
+plays:
+  - echo
+`);
+  const pavilo = await startPavilo(configPath);
+  t.after(() => pavilo.stop());
+  const nowSec = Math.floor(Date.now() / 1000);
+  const token = signHs256({
+    iss: 'app',
+    aud: 'pavilo',
+    sub: 'ada',
+    name: 'Ada',
+    channels: ['staff', 'table'],
+    iat: nowSec,
+    exp: nowSec + 600,
+  }, secret);
+  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  t.after(() => browser.close());
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  page.setDefaultTimeout(15_000);
+
+  await page.goto(`${pavilo.baseUrl}/embed?channel=staff&pavilo=${encodeURIComponent(token)}`);
+  await page.waitForTimeout(800);
+  assert.equal(await page.locator('#appShell').isHidden(), true);
+
+  await page.goto(`${pavilo.baseUrl}/embed?channel=staff#pavilo=${encodeURIComponent(token)}`);
+  await page.locator('#composerText').waitFor();
+  const joined = new URL(page.url());
+  assert.equal(joined.hash, '');
+  assert.equal(joined.searchParams.get('pavilo'), null);
+  assert.equal(page.url().includes(token), false);
+
+  await page.locator('#composerText').fill('从壳里来');
+  await page.locator('#composerText').press('Enter');
+  await page.locator('#messageList .message-body', { hasText: '从壳里来' }).waitFor();
+
+  await page.locator('#channelList .channel').filter({ hasText: '· table' }).click();
+  await page.locator('#echoText').waitFor();
+  const playing = new URL(page.url());
+  assert.equal(playing.hash, '');
+  assert.equal(playing.searchParams.get('embed'), '1');
+  assert.equal(page.url().includes(token), false);
+  await page.locator('#leave').click();
+  await page.locator('#composerText').waitFor();
+  assert.equal(new URL(page.url()).hash, '');
+  assert.equal(page.url().includes(token), false);
+});

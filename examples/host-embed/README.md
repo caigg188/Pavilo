@@ -2,7 +2,7 @@
 
 最小「已有登录的产品」把 Pavilo 放进 iframe。宿主页面不打开 WebSocket。凭证通过 `postMessage` 送入 `/embed`，不放进地址。
 
-这不是 npm SDK。v1.6.0 发布的是这个 iframe 预览。消息字段以 [v1.6 设计](../../docs/v1.6-design.md) 为准。
+这是网页 iframe 的对照，不是要复制进对方仓库的 SDK。App 的 WebView 用另一条地址，见 [接入说明](../../docs/integrate.md)。不含小程序。消息字段以 [v1.6 设计](../../docs/v1.6-design.md) 为准。
 
 ## 准备
 

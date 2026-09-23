@@ -1,6 +1,6 @@
 # 配置指南
 
-> 本文对应当前稳定版 v1.6.0 配置。`identity` / `channels[].features` / `channels[].access` 已随 v1.4 发布；`moderation.userDenyList` 已随 v1.5 发布；`embed.ancestors` 已随 v1.6 发布。省略 `embed` 则与 v1.5 一样不能被嵌。接入 SDK 仍见 [集成设计（规划中）](integration.md)，不要提前写入。
+> 本文对应当前仓库配置。`identity` / `channels[].features` / `channels[].access` 已随 v1.4 发布；`moderation.userDenyList` 已随 v1.5 发布；`embed.ancestors` 已随 v1.6 发布。`embed.direct` 与 fragment 凭证在主线，尚未打进 v1.6.0 标签。省略 `embed` 则没有 `/embed`。接入见 [接入说明](integrate.md)，不发布 SDK。
 
 本文档逐项说明 Pavilo 的全部配置项。
 
@@ -352,6 +352,19 @@ embed:
 - **版本**：Schema v1 和 v2 都可以写。不要求 SQLite
 - **说明**：这些源可以用 iframe 打开 `/embed` 和已启用玩法的页面。`/` 和 `/admin` 仍然拒绝被嵌。这张名单不代替 `server.allowedOrigins`：嵌入页自己连接 WebSocket，Origin 是 Pavilo
 - **状态**：已随 v1.6.0 发布。消息桥字段见 [v1.6 设计](v1.6-design.md) 与 [examples/host-embed/](../examples/host-embed/)
+
+#### `embed.direct`
+
+```yaml
+embed:
+  direct: true
+```
+
+- **默认值**：`false`。省略时，没有 `ancestors` 就没有 `/embed`
+- **类型**：布尔值
+- **版本**：Schema v1 和 v2 都可以写。不要求 SQLite
+- **说明**：为 `true` 时，App 可以用 WebView 顶层打开 `/embed`。响应仍是 `X-Frame-Options: DENY`，任何网页都不能嵌它。和 `ancestors` 同时写时，列出的源可以嵌，其他源不行。小程序不在当前接入范围
+- **状态**：主线已有，尚未打进 v1.6.0 标签。用法见 [接入说明](integrate.md)
 
 ---
 

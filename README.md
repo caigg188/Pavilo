@@ -26,7 +26,7 @@ Pavilo（**Pavilion + Local**）是浏览器即用、默认临时、可自托管
 ## 面向谁，以及正在走向哪里
 
 - **独立使用者**：给局域网、活动或私有团队一间浏览器即用的聊天室，默认不持久化，也可显式开启 SQLite。
-- **个人开发者与小型社区维护者**：复用宿主登录，把 `/embed` 嵌进已有页面；正式接入 SDK 仍在后面。
+- **个人开发者与小型社区维护者**：自己把语亭跑起来，再把一段说明交给自己项目的 Agent，嵌进网页或 App。项目不提供服务器。不含小程序。不发布 SDK。见 [接入说明](docs/integrate.md)。
 - **玩法和扩展贡献者**：按照主线提供的契约开发 Play、Agent、审核策略与事件扩展；官方维护基础设施和完整参考玩法。
 
 | 状态 | 能力 |
@@ -35,10 +35,10 @@ Pavilo（**Pavilion + Local**）是浏览器即用、默认临时、可自托管
 | 已发布：v1.3.0 | AI 网关、管理后台、房间/频道配置、席位禁言/请离/IP 黑名单、Play/Agent 宿主和 echo 夹具 |
 | 已发布：v1.4.0 | 功能目录、宿主 JWT 身份与频道授权 |
 | 已发布：v1.5.0 | 治理闭环：举报、墓碑移除、稳定用户拒绝、操作记录 |
-| 已发布：v1.6.0（最新稳定版） | 嵌入预览：宿主 iframe 打开 `/embed`，玩法留在嵌入区域。不是正式 SDK |
-| 计划中，v2.0 目标 | 接入 SDK、提交前文本规则、官方狼人杀 |
+| 已发布：v1.6.0（最新稳定版） | 嵌入预览：宿主 iframe 打开 `/embed`，玩法留在嵌入区域 |
+| 进行中 | 一段话接入网页和 App。不含小程序。不发布 SDK |
 
-**当前还没有可直接使用的嵌入 SDK。** v1.6 提供的是可选 iframe 预览，见 [examples/host-embed/](examples/host-embed/)。v2.0 以独立服务＋现成界面＋接入 SDK 为主要交付形态。
+**不发布接入 SDK。** 对方复制 [接入说明](docs/integrate.md) 开头的那段话，交给自己项目的 Agent。v1.6 的 iframe 示例仍在 [examples/host-embed/](examples/host-embed/)。
 
 默认临时模式始终保留；狼人杀作为官方完整 Play 示例，与基础设施并行开发，并在 v2.0 前完成。阶段与暂缓范围见 [路线图](ROADMAP.md)，接口边界见 [集成设计（规划中）](docs/integration.md)。本文配置和能力说明以当前稳定版为准。
 
@@ -279,7 +279,8 @@ PAVILO_PLAYWRIGHT_PATH=/tmp/pavilo-browser-verify/node_modules/playwright npm ru
 架构决策与演进策略见：
 - [架构原则](docs/architecture/principles.md) — 核心设计哲学与不变量
 - [架构演进](docs/evolution.md) — 未来扩展边界
-- [集成设计（规划中）](docs/integration.md) — 宿主身份、功能组装与嵌入 SDK 边界
+- [接入说明](docs/integrate.md) — 交给另一个项目的 Agent 的那段话
+- [集成设计（规划中）](docs/integration.md) — 早期边界备忘，接入不要按其中的 SDK 表实现
 - [玩法契约](docs/play.md) — 频道绑定与独立玩法页契约（v1.3）
 - [架构决策记录](docs/adr/) — 重大技术决策的背景与权衡
 - [产品路线图](ROADMAP.md) — 版本规划与发布门槛

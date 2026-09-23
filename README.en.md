@@ -26,7 +26,7 @@ Current version: **v1.6.0** — ephemeral group chat by default; optional SQLite
 ## Who it serves and where it is going
 
 - **Standalone users**: a browser-ready chat room for a LAN, event, or private team, with no persistence by default and optional SQLite retention.
-- **Independent developers and small community maintainers**: reuse your own sign-in and iframe `/embed` into an existing page. A stable integration SDK is still ahead.
+- **Independent developers and small community maintainers**: run Pavilo yourself, then give your project's agent the prompt in the [integration note](docs/integrate.md) to place it in a web page or an app WebView. This project hosts nothing. Mini programs are out of scope. There is no SDK.
 - **Play and extension contributors**: contracts for Play, Agent, moderation policies, and event extensions; maintainers provide infrastructure and a complete reference play.
 
 | Status | Capabilities |
@@ -35,10 +35,10 @@ Current version: **v1.6.0** — ephemeral group chat by default; optional SQLite
 | Released: v1.3.0 | AI gateway, admin console, room/channel configuration, seat mute/kick and IP denylist, Play/Agent host, and echo fixture |
 | Released: v1.4.0 | Feature catalog, host JWT identity, and channel authorization |
 | Released: v1.5.0 | Governance loop: reports, tombstone removal, stable-user denylist, operator action log |
-| Released: v1.6.0 (latest stable) | Embed preview: a host page iframes `/embed`, and play stays in that frame. Not a stable SDK |
-| Planned for v2.0 | Integration SDK, pre-commit text rules, and official Werewolf |
+| Released: v1.6.0 (latest stable) | Embed preview: a host page iframes `/embed`, and play stays in that frame |
+| In progress | A copy-paste prompt for web pages and app WebViews. Mini programs are out of scope. No SDK |
 
-**An embedding SDK is not available yet.** v1.6 ships an optional iframe preview; see [examples/host-embed/](examples/host-embed/). The v2.0 target is a standalone service plus a ready-made UI and integration SDK.
+**There is no integration SDK.** Copy the prompt at the top of the [integration note](docs/integrate.md) into the other project's agent. The v1.6 iframe example remains at [examples/host-embed/](examples/host-embed/).
 
 The default ephemeral mode remains a first-class mode. Official Werewolf is planned as a complete Play reference, developed alongside the infrastructure and required before v2.0. See the [roadmap](ROADMAP.md) and [integration design (planned)](docs/integration.md) for milestones and boundaries. Configuration and capabilities below describe the current stable release.
 
@@ -273,7 +273,8 @@ Architecture decisions and evolution strategy:
 
 - [Architecture principles](docs/architecture/principles.md) — core philosophy and invariants
 - [Architecture evolution](docs/evolution.md) — future extension boundaries
-- [Integration design (planned)](docs/integration.md) — host identity, feature composition, and embedding SDK boundaries
+- [Integration note](docs/integrate.md) — the prompt to give another project's agent. No SDK
+- [Integration design (planned)](docs/integration.md) — earlier notes. Do not implement the SDK table
 - [Play contract](docs/play.md) — channel binding and standalone play pages (v1.3)
 - [Architecture decision records](docs/adr/) — context and trade-offs behind major decisions
 - [Roadmap](ROADMAP.md) — version planning and release gates

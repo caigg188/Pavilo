@@ -1006,7 +1006,7 @@
       if (embedMode && event.reason === 'identity') {
         embedBridge?.clear();
         embedBridge?.post('identity-expired');
-        showEmbedWaiting(t('login.embedCopy'));
+        showEmbedWaiting(t('login.embedExpired'));
         return;
       }
       composerController.clearReply();
@@ -1037,8 +1037,11 @@
   });
 
   function playPageUrl(channel) {
-    if (embedMode) return PaviloEmbed.playEmbedUrl(channel.play, channel.id);
-    return `/plays/${channel.play}/?channel=${encodeURIComponent(channel.id)}`;
+    if (!embedMode) return `/plays/${channel.play}/?channel=${encodeURIComponent(channel.id)}`;
+    return PaviloEmbed.withCredential(
+      PaviloEmbed.playEmbedUrl(channel.play, channel.id),
+      embedBridge?.current()?.identityToken,
+    );
   }
 
   function leaveForNavigation() {
@@ -1313,6 +1316,10 @@
     window.addEventListener('message', (event) => embedBridge.handleMessage(event));
     showEmbedWaiting('');
     finishResume();
+    const fragmentToken = PaviloEmbed.consumeFragmentToken(window);
+    if (fragmentToken) {
+      embedBridge.acceptFragment(fragmentToken, PaviloEmbed.channelFromSearch(window.location.search));
+    }
     embedBridge.hello();
   } else {
   const savedResume = connection.readSession();

@@ -77,6 +77,7 @@ const DEFAULTS = deepFreeze({
   userDenyList: [],
   identity: { guests: true, audience: 'pavilo', clockSkewSec: 60, issuers: [] },
   embedAncestors: [],
+  embedDirect: false,
   channels: [{
     id: 'general',
     name: '闲聊',
@@ -107,7 +108,7 @@ const ISSUER_KEYS = new Set(['id', 'alg', 'secret']);
 const ACCESS_MODES = new Set(['open', 'authenticated']);
 const MODERATION_KEYS = new Set(['ipDenyList', 'userDenyList']);
 const MODERATION_KEYS_V1 = new Set(['userDenyList']);
-const EMBED_KEYS = new Set(['ancestors']);
+const EMBED_KEYS = new Set(['ancestors', 'direct']);
 const MAX_EMBED_ANCESTORS = 16;
 const MAX_USER_DENY_LIST = 64;
 const USER_KEY_RE = /^[A-Za-z0-9._:-]{1,128}$/;
@@ -257,17 +258,18 @@ function parseIdentitySecret(value, field) {
 }
 
 function parseEmbed(value) {
-  if (value === undefined) return [];
+  if (value === undefined) return { ancestors: [], direct: false };
   const embed = record(value, 'embed');
   knownKeys(embed, EMBED_KEYS, 'embed');
-  if (embed.ancestors === undefined) return [];
+  const direct = embed.direct === undefined ? false : boolean(embed.direct, 'embed.direct');
+  if (embed.ancestors === undefined) return { ancestors: [], direct };
   if (!Array.isArray(embed.ancestors)) fail('embed.ancestors', '必须是 URL 数组');
   if (embed.ancestors.length > MAX_EMBED_ANCESTORS) fail('embed.ancestors', `最多 ${MAX_EMBED_ANCESTORS} 个来源`);
   const origins = parseOrigins(embed.ancestors, 'embed.ancestors');
   for (const origin of origins) {
     if (origin.includes('*')) fail('embed.ancestors', '不能使用通配');
   }
-  return origins;
+  return { ancestors: origins, direct };
 }
 
 function parseIdentity(value) {
@@ -788,7 +790,9 @@ function normalizeConfig(document = {}, { requireVersion = false, baseDir = ROOT
   }
   validateDefaultChannel(config);
   config.identity = parseIdentity(root.identity);
-  config.embedAncestors = parseEmbed(root.embed);
+  const embed = parseEmbed(root.embed);
+  config.embedAncestors = embed.ancestors;
+  config.embedDirect = embed.direct;
   config.storage = schemaVersion >= 2 ? parseStorage(root.storage, baseDir) : { driver: 'memory' };
   if (schemaVersion >= 2) config.operator = parseOperator(root.operator);
   if (root.operator !== undefined) config._operatorDeclared = true;

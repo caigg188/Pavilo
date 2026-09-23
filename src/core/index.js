@@ -246,7 +246,7 @@ function createChatCore(config, runtime = {}) {
     const visible = publicChannels(config, guest);
     const info = { protocolVersion: events.PROTOCOL_VERSION, deprecatedProtocols: [], roomEpoch: rooms.epoch, roomTitle: config.roomTitle, defaultChannelId: config.defaultChannelId, defaultLanguage: config.defaultLanguage || 'zh-CN', supportedLanguages: ['zh-CN', 'en'], channels: visible.map(events.publicChannel), limits: events.publicLimits(config), ephemeral: store.ephemeral, identity: { guests: guestsAllowed(config) } };
     if (store.driver === 'sqlite') info.retentionDays = config.storage.sqlite.retentionDays;
-    if ((config.embedAncestors || []).length) info.embed = { enabled: true };
+    if ((config.embedAncestors || []).length || config.embedDirect === true) info.embed = { enabled: true };
     return info;
   }
   function health() {

@@ -90,10 +90,14 @@ function createHttpHandler(config, core, address, ROOT, extras = {}) {
     return `${APP_CSP} frame-ancestors ${ancestors.join(' ')};`;
   }
 
+  function embedOpen() {
+    return embedAncestorList().length > 0 || config.embedDirect === true;
+  }
+
   function embedBoot(html) {
+    if (!embedOpen() || !html.includes('</head>')) return html;
     const ancestors = embedAncestorList();
-    if (!ancestors.length || !html.includes('</head>')) return html;
-    const script = `<script>window.__PAVILO_EMBED__=${JSON.stringify({ ancestors })};</script>`;
+    const script = `<script>(function(){try{var path=location.pathname||"";var search=location.search||"";var embedDoc=path==="/embed"||path==="/embed/"||new URLSearchParams(search).get("embed")==="1";var hash=location.hash||"";if(hash.indexOf("pavilo=")!==-1){if(embedDoc){var token=new URLSearchParams(hash.slice(1)).get("pavilo")||"";if(token)window.__PAVILO_FRAGMENT_TOKEN__=token;}history.replaceState(null,"",path+search);}}catch(e){}})();window.__PAVILO_EMBED__=${JSON.stringify({ ancestors })};</script>`;
     return html.replace('</head>', `${script}</head>`);
   }
 
@@ -195,7 +199,7 @@ function createHttpHandler(config, core, address, ROOT, extras = {}) {
   }
 
   async function serveEmbedDocument(request, response, headOnly = false) {
-    if (!embedAncestorList().length) {
+    if (!embedOpen()) {
       response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
       response.end(headOnly ? undefined : 'Not found');
       return;
@@ -212,14 +216,15 @@ function createHttpHandler(config, core, address, ROOT, extras = {}) {
     const type = 'text/html; charset=utf-8';
     const etag = `"embed-${data.length.toString(16)}-${crypto.createHash('sha1').update(data).digest('hex').slice(0, 16)}"`;
     const encoded = await encodedBodyFor(request, etag, type, data);
+    const frameable = embedAncestorList().length > 0;
     const headers = {
       'Content-Type': type,
       'Content-Length': encoded.contentLength,
       'Cache-Control': 'no-cache',
       ETag: etag,
       Vary: 'Accept-Encoding',
-      ...frameHeaders(true),
-      'Content-Security-Policy': contentSecurityPolicy(true),
+      ...frameHeaders(frameable),
+      'Content-Security-Policy': contentSecurityPolicy(frameable),
     };
     if (encoded.encoding) headers['Content-Encoding'] = encoded.encoding;
     response.writeHead(200, headers);
@@ -334,9 +339,9 @@ function createHttpHandler(config, core, address, ROOT, extras = {}) {
       if (!areaReal.startsWith(`${playRoot}${path.sep}`) && areaReal !== playRoot) throw new Error('Not public');
       const target = await fs.promises.realpath(path.join(areaRoot, filename));
       if (!target.startsWith(`${areaReal}${path.sep}`) && target !== areaReal) throw new Error('Not public');
-      const embeddable = embedAncestorList().length > 0;
+      const embedFrameable = embedAncestorList().length > 0;
       let bytes = await fs.promises.readFile(target);
-      if (embeddable && extension === '.html') bytes = Buffer.from(embedBoot(bytes.toString('utf8')));
+      if (embedOpen() && extension === '.html') bytes = Buffer.from(embedBoot(bytes.toString('utf8')));
       const data = bytes;
       const type = MIME_TYPES[extension] || 'application/octet-stream';
       const etag = `"play-${data.length.toString(16)}-${crypto.createHash('sha1').update(data).digest('hex').slice(0, 16)}"`;
@@ -347,8 +352,8 @@ function createHttpHandler(config, core, address, ROOT, extras = {}) {
         'Cache-Control': 'no-cache',
         ETag: etag,
         Vary: 'Accept-Encoding',
-        ...frameHeaders(embeddable),
-        'Content-Security-Policy': contentSecurityPolicy(embeddable),
+        ...frameHeaders(embedFrameable),
+        'Content-Security-Policy': contentSecurityPolicy(embedFrameable),
       };
       if (encoded.encoding) headers['Content-Encoding'] = encoded.encoding;
       response.writeHead(200, headers);

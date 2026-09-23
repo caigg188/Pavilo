@@ -12,10 +12,20 @@
     // page that still holds a room identity, mark the document so the login overlay
     // never flashes while the socket reattaches. The boot script clears it.
     try {
-      var embedPath = location.pathname === '/embed' || location.pathname === '/embed/';
+      var path = location.pathname || '';
+      var search = location.search || '';
+      var embedPath = path === '/embed' || path === '/embed/';
+      var hash = location.hash || '';
       if (embedPath) document.documentElement.classList.add('embed-pending');
       else if (sessionStorage.getItem('pavilo.resume')) document.documentElement.classList.add('resuming');
-    } catch {}
+      if (hash.indexOf('pavilo=') !== -1) {
+        if (embedPath) {
+          var token = new URLSearchParams(hash.slice(1)).get('pavilo') || '';
+          if (token) window.__PAVILO_FRAGMENT_TOKEN__ = token;
+        }
+        history.replaceState(null, '', path + search);
+      }
+    } catch (e) {}
   </script>
   <link rel="stylesheet" href="/chat.css">
 </head>

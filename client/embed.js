@@ -43,6 +43,46 @@
     return { username: '', channelId: '', identityToken: '', resumeToken: '' };
   }
 
+  function isJwt(token) {
+    if (typeof token !== 'string' || token.length < 20 || token.length > 8192) return false;
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+    return parts.every((part) => part.length > 0 && /^[A-Za-z0-9_-]+$/.test(part));
+  }
+
+  function credentialFromHash(hash) {
+    const raw = String(hash || '');
+    if (!raw.startsWith('#') || !raw.includes('pavilo=')) return '';
+    let token = '';
+    try { token = new URLSearchParams(raw.slice(1)).get('pavilo') || ''; }
+    catch { return ''; }
+    return isJwt(token) ? token : '';
+  }
+
+  function withCredential(url, token) {
+    const clean = String(url || '').split('#')[0];
+    if (!isJwt(token)) return clean;
+    return `${clean}#pavilo=${encodeURIComponent(token)}`;
+  }
+
+  // Read a fragment credential and drop it from the address. Query strings are ignored.
+  // The head script may already have stashed the value on __PAVILO_FRAGMENT_TOKEN__.
+  function consumeFragmentToken(scope) {
+    const location = scope?.location;
+    let stashed = '';
+    if (scope && typeof scope.__PAVILO_FRAGMENT_TOKEN__ === 'string') {
+      stashed = scope.__PAVILO_FRAGMENT_TOKEN__;
+      try { delete scope.__PAVILO_FRAGMENT_TOKEN__; }
+      catch { scope.__PAVILO_FRAGMENT_TOKEN__ = ''; }
+    }
+    const fromHash = credentialFromHash(location?.hash || '');
+    if (location && String(location.hash || '').includes('pavilo=')) {
+      const next = `${location.pathname || ''}${location.search || ''}`;
+      try { scope.history?.replaceState?.(null, '', next); } catch { /* address bar is best-effort */ }
+    }
+    return isJwt(stashed) ? stashed : fromHash;
+  }
+
   function createEmbedBridge(options = {}) {
     const selfWindow = options.window || globalThis;
     const parent = options.parent === undefined ? selfWindow.parent : options.parent;
@@ -128,10 +168,17 @@
       return post('hello');
     }
 
+    function acceptFragment(token, channelId) {
+      if (!isJwt(token)) return false;
+      acceptIdentity({ username: '', channelId: channelId || '', identityToken: token });
+      return true;
+    }
+
     return {
       hello,
       post,
       handleMessage,
+      acceptFragment,
       subscribe,
       current,
       clear,
@@ -149,6 +196,9 @@
     channelFromSearch,
     playEmbedUrl,
     embedReturnUrl,
+    credentialFromHash,
+    withCredential,
+    consumeFragmentToken,
     createEmbedBridge,
   };
 });

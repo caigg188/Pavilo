@@ -94,7 +94,8 @@
       if (!channel || !channel.enabled) return false;
       if (channel.play) {
         if (embedded) connection.close({ intentional: true });
-        location.assign(embedded ? EmbedApi.playEmbedUrl(channel.play, channel.id) : playPageUrl(channel.play, channel.id));
+        const nextPlay = embedded ? EmbedApi.playEmbedUrl(channel.play, channel.id) : playPageUrl(channel.play, channel.id);
+        location.assign(embedded ? EmbedApi.withCredential(nextPlay, identity?.identityToken) : nextPlay);
         return true;
       }
       if (embedded) {
@@ -102,7 +103,7 @@
           connection.sendRaw({ type: 'leave' });
         }
         connection.close({ intentional: true });
-        location.assign(EmbedApi.embedReturnUrl(channel.id));
+        location.assign(EmbedApi.withCredential(EmbedApi.embedReturnUrl(channel.id), identity?.identityToken));
         return true;
       }
       connection.writeChannelId(channel.id);
@@ -183,6 +184,8 @@
         }
         connection.connect(identity);
       });
+      const fragmentToken = Embed.consumeFragmentToken?.(globalThis);
+      if (fragmentToken) bridge.acceptFragment(fragmentToken, desiredChannelId || Embed.channelFromSearch(location.search || ''));
       bridge.hello();
       return { redirected: false, embedded: true, bridge };
     }
@@ -232,10 +235,15 @@
       embedReturnUrl: () => {
         if (!embedded) return '/';
         const current = channels.find((item) => item.id === desiredChannelId);
-        const channelId = current?.play
-          ? (roomInfo?.defaultChannelId || '')
-          : (desiredChannelId || roomInfo?.defaultChannelId || '');
-        return EmbedApi.embedReturnUrl(channelId);
+        const playDocument = String(location?.pathname || '').includes('/plays/');
+        let channelId = desiredChannelId || roomInfo?.defaultChannelId || '';
+        if (playDocument || current?.play) {
+          const fallback = [roomInfo?.defaultChannelId]
+            .concat(channels.filter((item) => item.enabled !== false && !item.play).map((item) => item.id))
+            .find((id) => id && id !== desiredChannelId);
+          channelId = fallback || '';
+        }
+        return EmbedApi.withCredential(EmbedApi.embedReturnUrl(channelId), identity?.identityToken);
       },
       embedded: () => embedded,
     };

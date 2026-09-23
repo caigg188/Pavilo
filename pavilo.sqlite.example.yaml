@@ -90,11 +90,12 @@ operator:
 # ============================================================================
 # 可选：嵌入预览（默认关闭）
 # ============================================================================
-# 只允许这些源把 /embed 放进 iframe。不要把它写成 server.allowedOrigins。
-# 省略或留空时，/embed 不存在，页面仍然拒绝被嵌。
-# 对照 examples/host-embed。
+# 网页 iframe 写 ancestors。App 的 WebView 写 direct: true。不含小程序。
+# 不要把宿主源写成 server.allowedOrigins。省略 embed 时没有 /embed。
+# 对照 docs/integrate.md 与 examples/host-embed。
 #
 # embed:
+#   direct: true
 #   ancestors:
 #     - http://127.0.0.1:4174
 #     - http://localhost:4174

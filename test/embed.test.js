@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict');
 const http = require('node:http');
 const test = require('node:test');
-const { createEmbedBridge, playEmbedUrl, embedReturnUrl } = require('../client/embed');
+const { createEmbedBridge, playEmbedUrl, embedReturnUrl, credentialFromHash, withCredential, consumeFragmentToken } = require('../client/embed');
 const { parseConfig } = require('../config');
 const { createChatServer } = require('../server');
 const { defaultFeatures } = require('../src/core/capabilities');
@@ -63,10 +63,47 @@ test('embed bridge ignores a foreign origin, a stale instance, and keeps secrets
   assert.equal(sent.at(-1).data.channelId, 'staff');
 });
 
+test('fragment credentials are accepted only from the hash and then removed', () => {
+  const token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZGEifQ.signature';
+  assert.equal(credentialFromHash(`#pavilo=${token}`), token);
+  assert.equal(credentialFromHash(`?pavilo=${token}`), '');
+  assert.equal(credentialFromHash('#pavilo=not-a-jwt'), '');
+  assert.equal(withCredential('/embed?channel=staff', token), `/embed?channel=staff#pavilo=${encodeURIComponent(token)}`);
+  assert.equal(withCredential('/embed?channel=staff', 'not-a-jwt').includes('#'), false);
+
+  const location = { pathname: '/embed', search: '?channel=staff', hash: `#pavilo=${token}` };
+  const scope = {
+    location,
+    history: { replaceState(_state, _title, next) { scope.replaced = next; location.hash = ''; } },
+    __PAVILO_FRAGMENT_TOKEN__: token,
+  };
+  const sent = [];
+  const parent = { postMessage(data, origin) { sent.push({ data, origin }); } };
+  const bridge = createEmbedBridge({
+    window: {},
+    parent,
+    ancestors: ['http://127.0.0.1:4174'],
+    instance: 'em_test',
+  });
+  assert.equal(consumeFragmentToken(scope), token);
+  assert.equal(scope.replaced, '/embed?channel=staff');
+  assert.equal(scope.__PAVILO_FRAGMENT_TOKEN__, undefined);
+  assert.equal(bridge.acceptFragment(token, 'staff'), true);
+  assert.equal(bridge.current().identityToken, token);
+  assert.equal(bridge.hello(), true);
+  assert.equal(sent.at(-1).data.identityToken, undefined);
+  assert.equal(JSON.stringify(sent.at(-1).data).includes(token), false);
+});
+
 test('embed ancestors are an exact origin list on both config versions', () => {
   const memory = parseConfig('version: 1\nembed:\n  ancestors:\n    - http://127.0.0.1:4174\n');
   assert.deepEqual(memory.embedAncestors, ['http://127.0.0.1:4174']);
+  assert.equal(memory.embedDirect, false);
   assert.equal(memory.storage.driver, 'memory');
+  const direct = parseConfig('version: 1\nembed:\n  direct: true\n');
+  assert.equal(direct.embedDirect, true);
+  assert.deepEqual(direct.embedAncestors, []);
+  assert.throws(() => parseConfig('version: 1\nembed:\n  direct: yes\n'), /embed\.direct/);
   assert.throws(() => parseConfig('version: 1\nembed:\n  ancestors:\n    - "*"\n'), /embed\.ancestors/);
   assert.throws(() => parseConfig('version: 1\nembed:\n  ancestors:\n    - http://127.0.0.1:4174/room\n'), /embed\.ancestors/);
   assert.throws(() => parseConfig(`version: 1\nembed:\n  ancestors:\n${Array.from({ length: 17 }, (_, index) => `    - http://127.0.0.1:${4174 + index}\n`).join('')}`), /最多 16/);
@@ -86,6 +123,22 @@ test('embed entry stays closed until ancestors are configured', async () => {
   assert.equal(home.headers.get('x-frame-options'), 'DENY');
   assert.equal(home.headers.get('content-security-policy').includes('frame-ancestors'), false);
   await closed.stop();
+});
+
+test('direct embed serves the page without allowing any frame', async (t) => {
+  const app = createChatServer({ port: 0, embedDirect: true });
+  t.after(() => app.stop());
+  const port = await listen(app);
+  const base = `http://127.0.0.1:${port}`;
+  const embed = await fetch(`${base}/embed`);
+  assert.equal(embed.status, 200);
+  assert.equal(embed.headers.get('x-frame-options'), 'DENY');
+  assert.equal(embed.headers.get('content-security-policy').includes('frame-ancestors'), false);
+  assert.match(await embed.text(), /__PAVILO_FRAGMENT_TOKEN__/);
+  const info = await fetch(`${base}/room-info`);
+  assert.deepEqual((await info.json()).embed, { enabled: true });
+  const home = await fetch(`${base}/`);
+  assert.equal(home.headers.get('x-frame-options'), 'DENY');
 });
 
 test('configured ancestors open only the embed document and play pages', async (t) => {
