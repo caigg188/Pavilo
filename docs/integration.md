@@ -2,7 +2,7 @@
 
 > 状态：接入不要读本文的 SDK 表。现行契约是 [接入说明](integrate.md)。不发布 SDK。治理闭环已随 v1.5.0 发布，字段以 [ADR-0011](adr/0011-governance-loop.md) 为准。
 
-当前最新稳定版为 v1.6.0。还没有公开接入 SDK。未配置 `embed.ancestors` 时，聊天页、玩法页和后台仍是 `X-Frame-Options: DENY`。配了来源之后，只有 `/embed` 和已启用玩法页可以被那些源嵌进 iframe；独立页进玩法仍是整页跳转。阶段见 [路线图](../ROADMAP.md)，决策见 [ADR-0008](adr/0008-embeddable-composable-chat.md)。
+当前最新稳定版为 v1.7.0。还没有公开接入 SDK。未配置 `embed` 时，聊天页、玩法页和后台仍是 `X-Frame-Options: DENY`，也没有 `/embed`。配了 `embed.ancestors` 之后，只有 `/embed` 和已启用玩法页可以被那些源嵌进 iframe。`embed.direct` 只允许顶层打开 `/embed`，仍然拒绝被嵌。独立页进玩法仍是整页跳转。阶段见 [路线图](../ROADMAP.md)，契约见 [接入说明](integrate.md)，决策见 [ADR-0008](adr/0008-embeddable-composable-chat.md)。
 
 ## 交付形态与接入流程
 

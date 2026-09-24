@@ -11,13 +11,13 @@
 Pavilo（**Pavilion + Local**）是浏览器即用、默认临时、可自托管、可按需组装的轻量聊天工具，也在向方便接入已有产品的聊天与玩法能力演进。像一座随处可搭的小亭：启动 Node.js 进程，同一局域网里的人打开网页就能交谈；默认内存模式下，服务停止后聊天记录回到空白。
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.6.0-0f7772">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.7.0-0f7772">
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-0f7772">
   <img alt="Node.js" src="https://img.shields.io/badge/node-%3E%3D22-0f7772">
   <img alt="Protocol v4" src="https://img.shields.io/badge/protocol-v4-0f7772">
 </p>
 
-当前版本 **v1.6.0**：默认仍是无数据库的临时群聊；可用 Config Schema v2 可选启用 SQLite（默认留存 30 天，支持历史分页与备份）。sqlite 下可打开 `/admin` 值班台、可选 AI 网关与 Play 宿主，并可按频道开关功能、接入宿主 JWT 身份。有值班台时可以举报、墓碑移除内容，并拒绝稳定用户。配了 `embed.ancestors` 后，宿主可以用 iframe 打开 `/embed`。界面提供简体中文与英语，WebSocket 协议只接受 v4。适合可信局域网、私有网络或 VPN 环境。
+当前版本 **v1.7.0**：默认仍是无数据库的临时群聊；可用 Config Schema v2 可选启用 SQLite（默认留存 30 天，支持历史分页与备份）。sqlite 下可打开 `/admin` 值班台、可选 AI 网关与 Play 宿主，并可按频道开关功能、接入宿主 JWT 身份。有值班台时可以举报、墓碑移除内容，并拒绝稳定用户。配了 `embed.ancestors` 后，宿主可以用 iframe 打开 `/embed`；`embed.direct` 让 App 用 WebView 顶层打开同一页，凭证只放在地址 fragment 里，打开后立刻删掉。`?pavilo=` 不能登录。界面提供简体中文与英语，WebSocket 协议只接受 v4。适合可信局域网、私有网络或 VPN 环境。
 
 <p align="center">
   <img src="docs/screenshots/overview.png" width="880" alt="Pavilo 界面预览：桌面聊天、登录页与移动端">
@@ -35,10 +35,10 @@ Pavilo（**Pavilion + Local**）是浏览器即用、默认临时、可自托管
 | 已发布：v1.3.0 | AI 网关、管理后台、房间/频道配置、席位禁言/请离/IP 黑名单、Play/Agent 宿主和 echo 夹具 |
 | 已发布：v1.4.0 | 功能目录、宿主 JWT 身份与频道授权 |
 | 已发布：v1.5.0 | 治理闭环：举报、墓碑移除、稳定用户拒绝、操作记录 |
-| 已发布：v1.6.0（最新稳定版） | 嵌入预览：宿主 iframe 打开 `/embed`，玩法留在嵌入区域 |
-| 进行中 | 一段话接入网页和 App。不含小程序。不发布 SDK |
+| 已发布：v1.7.0（最新稳定版） | 一段话接入：网页 iframe 与 App WebView 共用同一份服务。query 里的凭证不能登录。不含小程序。不发布 SDK |
+| 已发布：v1.6.0 | 嵌入预览：宿主 iframe 打开 `/embed`，玩法留在嵌入区域。这一版没有 `embed.direct`，也不认 fragment |
 
-**不发布接入 SDK。** 对方复制 [接入说明](docs/integrate.md) 开头的那段话，交给自己项目的 Agent。v1.6 的 iframe 示例仍在 [examples/host-embed/](examples/host-embed/)。
+**不发布接入 SDK。** 对方复制 [接入说明](docs/integrate.md) 开头的那段话，交给自己项目的 Agent。网页示例在 [examples/host-embed/](examples/host-embed/)，旁边启动的配置在 [examples/alongside/](examples/alongside/)。
 
 默认临时模式始终保留；狼人杀作为官方完整 Play 示例，与基础设施并行开发，并在 v2.0 前完成。阶段与暂缓范围见 [路线图](ROADMAP.md)，接口边界见 [集成设计（规划中）](docs/integration.md)。本文配置和能力说明以当前稳定版为准。
 

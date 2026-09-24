@@ -2,7 +2,7 @@
 
 > 状态：这是交给**另一个项目的 Agent** 的契约。没有 npm 包，没有 SDK，没有框架组件。
 >
-> 网页 iframe 用已发布的 v1.6.0 即可。`embed.direct` 和地址 fragment 只在当前主线，v1.6.0 镜像没有，App 的 WebView 不要拿 1.6.0 镜像按本文接入。
+> 网页 iframe 和 App 的 WebView 用同一份 **v1.7.0**。v1.6.0 只有 iframe 预览，不认 `embed.direct`，也不认地址 fragment，不要拿它接 App，也不要让两种壳各用一版。
 
 Pavilo 不提供服务器。要聊天的人在自己的项目里把这个开源服务启动起来，再嵌进自己的网页或 App。Agent 不改 Pavilo 的源码，也不把聊天重写进对方的页面，也不自己连接 WebSocket。
 
@@ -21,8 +21,8 @@ Pavilo 不提供服务器。要聊天的人在自己的项目里把这个开源�
 
 再用这个项目已经在用的方式启动 Pavilo，和这个网站一起启动，不要另找一台别人的服务器：
 
-- 项目已有 Docker Compose 时，加一个服务，镜像固定为 ghcr.io/caigg188/pavilo:1.6.0。这是网页 iframe 能用的已发布版本。
-- 没有容器时，把 https://github.com/caigg188/Pavilo.git 克隆到业务源码旁边的目录，检出 v1.6.0，在那个目录 npm ci 后 npm start。不要把克隆结果放进前端源码目录，也不要提交进去。
+- 项目已有 Docker Compose 时，加一个服务，镜像固定为 ghcr.io/caigg188/pavilo:1.7.0。网页 iframe 和 App 的 WebView 都用这一版。不要用 1.6.0。
+- 没有容器时，把 https://github.com/caigg188/Pavilo.git 克隆到业务源码旁边的目录，检出 v1.7.0，在那个目录 npm ci 后 npm start。不要把克隆结果放进前端源码目录，也不要提交进去。
 - 生成至少 32 个字符的 PAVILO_IDENTITY_SECRET，放进服务端环境变量。Pavilo 进程和这个网站的后端用同一把。不要写进前端，不要写进仓库。
 - 写一份 pavilo.yaml 挂给这个进程。version 用 2，storage.driver 用 sqlite，这样聊天记录会留下。secret 写成空字符串，让环境变量覆盖。identity.guests 为 false，audience 为 pavilo，issuer id 为 app，alg 为 HS256。建一个频道，id 用 chat，access 为 authenticated。embed.ancestors 写成浏览器打开这个网站时的源（协议、主机、端口）。用 SQLite 时关掉容器的只读根文件系统，并挂上数据目录。
 - PAVILO_URL 就是浏览器访问这个进程的源，不含路径。本地通常是 http://127.0.0.1:4173。端口被占用就换一个，并写进配置。不要向开发者索要一个外部地址。
@@ -47,7 +47,7 @@ PAVILO_CHANNEL 是 chat。PAVILO_ISSUER 是 app。PAVILO_AUDIENCE 是 pavilo。
 
 1. 网页。加一个 iframe，src 是 PAVILO_URL + "/embed"，不要附带 token，不要加 sandbox。使用下面的 attachPaviloFrame，不要改字段名。signIdentity 每次 hello 都重新签发，不要把上一张凭证缓存到过期。收到 identity-expired 时不要拆掉 iframe，页面会再发 hello。embed.ancestors 用这个网站的源，不要把这个源写进 server.allowedOrigins。配置可以照仓库里的 examples/alongside，只改祖先和端口。用 SQLite 时关掉只读根文件系统并挂上数据目录。
 
-2. iOS 或 Android 应用。不要用 v1.6.0 镜像，它还不认地址里的 fragment。这一条只在当前主线，需要自行构建镜像，并在 pavilo.yaml 写 embed.direct: true。用系统 WebView 打开：
+2. iOS 或 Android 应用。用上面同一份 v1.7.0，不要另建一版。在 pavilo.yaml 写 embed.direct: true。用系统 WebView 打开：
    PAVILO_URL + "/embed?channel=" + PAVILO_CHANNEL + "#pavilo=" + encodeURIComponent(JWT)
    不要把 JWT 放进 ? 后面。不要写原生聊天界面。过期前重新加载这个地址，用一张新 JWT。正式环境用 https。
 

@@ -11,13 +11,13 @@
 Pavilo (**Pavilion + Local**) is a lightweight, self-hosted chat tool that runs in the browser, is ephemeral by default, and is evolving toward composable chat and play capabilities that developers can embed in their products. Like a small pavilion you can put up anywhere: start a Node.js process, and anyone on the same local network can open a web page and talk. In the default memory mode, chat history disappears when the service stops.
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.6.0-0f7772">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.7.0-0f7772">
   <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-0f7772">
   <img alt="Node.js" src="https://img.shields.io/badge/node-%3E%3D22-0f7772">
   <img alt="Protocol v4" src="https://img.shields.io/badge/protocol-v4-0f7772">
 </p>
 
-Current version: **v1.6.0** — ephemeral group chat by default; optional SQLite via Config Schema v2 (30-day retention, history paging, backup). With sqlite you can open `/admin`, an optional AI gateway, and the Play host, plus per-channel feature flags and host JWT identity. With the operator console, people can report messages, operators can tombstone them, and stable users can be denied. With `embed.ancestors` set, a host page can iframe `/embed`. Simplified Chinese and English UI, WebSocket Protocol v4 only. Built for trusted LANs, private networks, and VPNs.
+Current version: **v1.7.0** — ephemeral group chat by default; optional SQLite via Config Schema v2 (30-day retention, history paging, backup). With sqlite you can open `/admin`, an optional AI gateway, and the Play host, plus per-channel feature flags and host JWT identity. With the operator console, people can report messages, operators can tombstone them, and stable users can be denied. With `embed.ancestors` set, a host page can iframe `/embed`. `embed.direct` lets an app WebView open the same page at the top level; the credential lives only in the URL fragment and is removed immediately. `?pavilo=` cannot sign in. Simplified Chinese and English UI, WebSocket Protocol v4 only. Built for trusted LANs, private networks, and VPNs.
 
 <p align="center">
   <img src="docs/screenshots/overview.png" width="880" alt="Pavilo preview: desktop chat, login, and mobile">
@@ -35,10 +35,10 @@ Current version: **v1.6.0** — ephemeral group chat by default; optional SQLite
 | Released: v1.3.0 | AI gateway, admin console, room/channel configuration, seat mute/kick and IP denylist, Play/Agent host, and echo fixture |
 | Released: v1.4.0 | Feature catalog, host JWT identity, and channel authorization |
 | Released: v1.5.0 | Governance loop: reports, tombstone removal, stable-user denylist, operator action log |
-| Released: v1.6.0 (latest stable) | Embed preview: a host page iframes `/embed`, and play stays in that frame |
-| In progress | A copy-paste prompt for web pages and app WebViews. Mini programs are out of scope. No SDK |
+| Released: v1.7.0 (latest stable) | Copy-paste integration: web iframe and app WebView share one service. A credential in the query cannot sign in. Mini programs are out of scope. No SDK |
+| Released: v1.6.0 | Embed preview: a host page iframes `/embed`, and play stays in that frame. That tag has no `embed.direct` and does not read the fragment |
 
-**There is no integration SDK.** Copy the prompt at the top of the [integration note](docs/integrate.md) into the other project's agent. The v1.6 iframe example remains at [examples/host-embed/](examples/host-embed/).
+**There is no integration SDK.** Copy the prompt at the top of the [integration note](docs/integrate.md) into the other project's agent. The web example is [examples/host-embed/](examples/host-embed/); the side-by-side config is [examples/alongside/](examples/alongside/).
 
 The default ephemeral mode remains a first-class mode. Official Werewolf is planned as a complete Play reference, developed alongside the infrastructure and required before v2.0. See the [roadmap](ROADMAP.md) and [integration design (planned)](docs/integration.md) for milestones and boundaries. Configuration and capabilities below describe the current stable release.
 

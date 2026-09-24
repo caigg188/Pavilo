@@ -6,6 +6,10 @@ Pavilo 的重要变更都记在这份文件里。
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-09-24
+
+一段话接入。网页 iframe 和 App 的 WebView 用同一份服务。不写 `embed` 时没有 `/embed`，行为与 v1.6.0 相同。Protocol v4 不升号。不发布 SDK。不含小程序。官方狼人杀尚未实现。
+
 ### Added
 - 一段话接入，不发布 SDK。见 [接入说明](docs/integrate.md)
 - `embed.direct`：只开顶层 `/embed`，仍然拒绝被 iframe。给 App 的 WebView。不写时行为与 v1.6.0 相同。小程序不在这次范围内
@@ -13,6 +17,9 @@ Pavilo 的重要变更都记在这份文件里。
 - 嵌入页在凭证过期后再发一次 `hello`，外层按原来的回复换一张新凭证，不必拆掉 iframe
 - [examples/alongside/](examples/alongside/)：在自己的网站旁边启动、并允许嵌入的配置
 - [examples/host-embed/frame.js](examples/host-embed/frame.js)：逐字使用的嵌页代码
+
+### Tests
+- 2026-09-24 发布验证（本机 Node v26.5.0）：`npm test` 430 个，429 通过、1 跳过（`SYNC_IN_PROGRESS` 集成窗口）；`npm run test:browser` 22 通过；`npm audit --audit-level=high` 无漏洞。未在本机跑 Node 22/24。GHCR 由标签工作流构建，发布前未拉取远端镜像
 
 ## [1.6.0] - 2026-09-23
 
@@ -463,6 +470,7 @@ SQLite 运维：历史分页、备份/恢复、完整性检查与 healthz 库存
 
 ## 版本摘要
 
+- **v1.7.0** — 一段话接入：网页 iframe 与 App WebView 共用同一份服务
 - **v1.6.0** — 嵌入预览：宿主 iframe、`/embed`、玩法留在嵌入区域
 - **v1.5.0** — 举报、墓碑移除、稳定用户拒绝、操作记录
 - **v1.4.0** — 功能目录与宿主 JWT 身份

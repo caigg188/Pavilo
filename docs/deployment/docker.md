@@ -423,7 +423,8 @@ docker compose up -d
 
 ```bash
 docker pull ghcr.io/caigg188/pavilo:latest
-# 或钉死版本：ghcr.io/caigg188/pavilo:1.6.0
+# 或钉死版本：ghcr.io/caigg188/pavilo:1.7.0
+# v1.6.0 只有 iframe 预览，没有 embed.direct，也不认 fragment
 
 # 停止旧容器
 docker stop pavilo

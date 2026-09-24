@@ -11,7 +11,7 @@
 | v1.4.0 已发布 | 功能目录、宿主 JWT 身份与频道授权 |
 | v1.5.0 已发布 | 治理闭环：举报、墓碑移除、稳定 `userKey` 拒绝、操作记录。[ADR-0011](adr/0011-governance-loop.md) |
 | v1.6.0 已发布 | 嵌入预览：宿主 iframe、`/embed`、玩法留在嵌入区域。[v1.6 设计](v1.6-design.md) |
-| 进行中 | 一段话接入。不发布 SDK。[接入说明](integrate.md) |
+| v1.7.0 已发布 | 一段话接入：同一份服务给网页 iframe 和 App WebView。不发布 SDK。[接入说明](integrate.md) |
 | 计划中 | 提交前文本规则、通用 Policy/Event 扩展、官方狼人杀 |
 
 当前 `server.js` 组合各模块，导入不会监听端口或注册信号。`createChatServer` 是现有工厂入口，不是装进对方 Node 应用的库。独立页仍以整站为中心，默认拒绝被嵌。配了 `embed.ancestors` 后，只有 `/embed` 和已启用玩法页可以被那些源嵌进 iframe。`embed.direct` 只让网页容器顶层打开 `/embed`，不因此允许被嵌。稳定用户拒绝是一份 `userKey` 名单，不是账号表；访客仍然没有可封禁的稳定身份。
