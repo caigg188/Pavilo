@@ -472,5 +472,28 @@ test('echo fixture files exist on disk', () => {
   assert.ok(fs.existsSync(path.join(root, 'play.json')));
   assert.ok(fs.existsSync(path.join(root, 'host.js')));
   assert.ok(fs.existsSync(path.join(root, 'page', 'index.html')));
-  assert.ok(!fs.existsSync(path.join(__dirname, '..', 'plays', 'werewolf', 'host.js')));
+});
+
+// 这条断言原本是「狼人杀尚未实现」的占位守卫；现在它已经落地，
+// 改为检查它符合 loader 对玩法目录的要求（play.json / host.js / page/index.html）。
+test('werewolf ships the files the loader requires', () => {
+  const root = path.join(__dirname, '..', 'plays', 'werewolf');
+  assert.ok(fs.existsSync(path.join(root, 'play.json')));
+  assert.ok(fs.existsSync(path.join(root, 'host.js')));
+  assert.ok(fs.existsSync(path.join(root, 'page', 'index.html')));
+  assert.ok(fs.existsSync(path.join(root, 'page', 'app.js')));
+  assert.ok(fs.existsSync(path.join(root, 'page', 'style.css')));
+
+  const host = require(path.join(root, 'host.js'));
+  assert.equal(host.id, 'werewolf');
+  assert.equal(typeof host.create, 'function');
+
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, 'play.json'), 'utf8'));
+  assert.equal(manifest.id, 'werewolf');
+
+  // 角色卡与头像是页面资产，缺图会让座位与终局揭晓开天窗。
+  for (const role of ['werewolf', 'seer', 'witch', 'hunter', 'villager']) {
+    assert.ok(fs.existsSync(path.join(root, 'assets', 'roles', `${role}.jpg`)), `缺少 ${role}.jpg`);
+    assert.ok(fs.existsSync(path.join(root, 'assets', 'roles', `avatar-${role}.jpg`)), `缺少 avatar-${role}.jpg`);
+  }
 });

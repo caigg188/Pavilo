@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>狼人杀 · 语亭</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="moonlight" aria-hidden="true"></div>
+  <div class="fog" aria-hidden="true"></div>
+
+  <header class="bar">
+    <a class="mark" href="/" title="返回语亭">语亭</a>
+    <div class="bar-title">
+      <strong data-i18n="title">狼人杀</strong>
+      <span class="board-tag" id="boardTag">9 人标准局</span>
+    </div>
+    <div class="bar-right">
+      <span class="status" id="status" role="status" aria-live="polite" data-i18n="connecting">连接中…</span>
+      <nav class="channels" id="channels" aria-label="频道"></nav>
+      <button type="button" id="langButton" class="ghost" aria-label="Switch language">EN</button>
+      <button type="button" id="leaveButton" class="ghost" data-i18n="leave">离开</button>
+    </div>
+  </header>
+
+  <!-- 阶段横幅：夜晚/白天切换时整屏色调随之变化 -->
+  <section class="stage" id="stage" aria-live="polite">
+    <div class="stage-inner">
+      <h1 class="phase-name" id="phaseName" data-i18n="phase.lobby">等待开始</h1>
+      <p class="phase-hint" id="phaseHint" data-i18n="hint.lobby">坐下并邀请同伴，或添加 AI 补齐 9 人。</p>
+      <div class="timer" id="timer" hidden>
+        <svg viewBox="0 0 40 40" aria-hidden="true">
+          <circle class="timer-track" cx="20" cy="20" r="17"></circle>
+          <circle class="timer-fill" id="timerFill" cx="20" cy="20" r="17"></circle>
+        </svg>
+        <span id="timerText">0</span>
+      </div>
+    </div>
+  </section>
+
+  <main class="table-wrap">
+    <!-- 座位环 -->
+    <ol class="seats" id="seats" aria-label="座位"></ol>
+
+    <!-- 自己的身份牌：翻牌动画 -->
+    <div class="my-card" id="myCard" hidden>
+      <button class="card-flip" id="cardFlip" type="button" aria-label="查看身份牌">
+        <span class="card-face card-back" aria-hidden="true">
+          <span class="card-back-moon"></span>
+        </span>
+        <span class="card-face card-front">
+          <img id="cardImage" alt="" decoding="async">
+        </span>
+      </button>
+      <p class="card-label" id="cardLabel"></p>
+    </div>
+  </main>
+
+  <!-- 操作面板：内容完全由服务端 prompt 驱动，前端不推断权限 -->
+  <section class="panel" id="panel" aria-label="可执行操作">
+    <p class="panel-title" id="panelTitle" hidden></p>
+    <div class="actions" id="actions"></div>
+    <form class="say" id="sayForm" hidden>
+      <input id="sayInput" maxlength="200" autocomplete="off" data-i18n-ph="say.placeholder" placeholder="轮到你发言…">
+      <button type="submit" class="primary" data-i18n="say.send">发言</button>
+      <button type="button" id="endSpeech" class="ghost" data-i18n="say.end">结束发言</button>
+    </form>
+  </section>
+
+  <!-- 公开发言与法官播报 -->
+  <section class="log-wrap">
+    <ol class="log" id="log" aria-live="polite" aria-label="对局记录"></ol>
+  </section>
+
+  <!-- 狼队私聊：只有狼人会看到 -->
+  <aside class="wolf-chat" id="wolfChat" hidden>
+    <h2 data-i18n="wolf.title">狼队频道</h2>
+    <ol id="wolfLog"></ol>
+    <form id="wolfForm">
+      <input id="wolfInput" maxlength="120" autocomplete="off" data-i18n-ph="wolf.placeholder" placeholder="和队友商量…">
+      <button type="submit" class="primary">→</button>
+    </form>
+  </aside>
+
+  <!-- 终局揭晓 -->
+  <div class="reveal" id="reveal" hidden>
+    <div class="reveal-inner">
+      <h2 id="revealTitle"></h2>
+      <p id="revealReason"></p>
+      <ol class="reveal-seats" id="revealSeats"></ol>
+      <button type="button" id="restartButton" class="primary" data-i18n="restart">再来一局</button>
+    </div>
+  </div>
+
+  <script src="/client/protocol.js"></script>
+  <script src="/client/connection.js"></script>
+  <script src="/client/play.js"></script>
+  <script src="./i18n.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

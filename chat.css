@@ -1742,9 +1742,22 @@ html.embed-pending #notifyButton { display: none; }
 .mobile-sheet-backdrop[aria-hidden="false"] { display: block; }
 
 @media (max-width: 1180px) {
-  .workspace { grid-template-columns: clamp(200px, 22vw, 258px) minmax(0, 1fr); }
-  .info-panel { display: none; }
+  .workspace { grid-template-columns: minmax(0, 1fr) clamp(190px, 23vw, 230px); }
+  .rail { display: none; }
+  .info-panel { display: block; }
   .mobile-members-button { display: inline-flex; }
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    padding:
+      max(12px, env(safe-area-inset-top))
+      max(10px, env(safe-area-inset-right))
+      max(10px, env(safe-area-inset-bottom))
+      max(10px, env(safe-area-inset-left));
+  }
+  .topbar {
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, max-content);
   .mobile-sheet-backdrop {
     position: fixed;
     z-index: 39;
@@ -1920,6 +1933,7 @@ html.embed-pending #notifyButton { display: none; }
   .viewer-nav { width: 40px; height: 40px; }
   .viewer-note { display: none; }
   .viewer-stage { padding-inline: 10px; }
+  .message-body { font-size: 13px; }
 }
 
 @media (max-height: 560px) {

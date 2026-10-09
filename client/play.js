@@ -109,6 +109,7 @@
       connection.writeChannelId(channel.id);
       const sent = connection.sendRaw({ type: 'switchChannel', channelId: channel.id });
       if (!sent) return false;
+      desiredChannelId = channel.id;
       const unsub = connection.subscribe((event) => {
         if (event.type !== 'payload') return;
         const parsed = protocol.parseServerEvent(event.payload);

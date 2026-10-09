@@ -1,0 +1,4 @@
+{
+  "styles": ["style.css"],
+  "scripts": ["i18n.js", "app.js"]
+}
